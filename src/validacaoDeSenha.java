@@ -1,8 +1,11 @@
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
 import java.util.Scanner;
 
-public class validacaoDeSenha{
+public class validacaoDeSenha {
 
     public static int verificarOpcao(Scanner teclado) {
         int opcao;
@@ -28,7 +31,6 @@ public class validacaoDeSenha{
         } while (senha.length() < 4 || senha.length() > 8);
         return senha;
     }
-    
 
     public static String verificarSenha(Scanner teclado, String senha) {
         String senhaVerificada;
@@ -52,10 +54,24 @@ public class validacaoDeSenha{
         return teclado.nextLine();
     }
 
-    public static void verificarArquivo(String usuario, String senha) {
-        // Aqui você pode adicionar lógica para autenticar o usuário e a senha
-        // com algum arquivo ou base de dados. Neste exemplo, estou apenas imprimindo.
-        System.out.printf("Usuário %s autenticado com a senha %s.%n", usuario, senha);
+    public static boolean verificarArquivo(String usuario, String senha) {
+        try {
+            List<String> linhas = Files.readAllLines(Paths.get("usuarios.txt"));
+            for (String linha : linhas) {
+                String[] partes = linha.split(" - Senha: ");
+                if (partes.length == 2) {
+                    String usuarioArquivo = partes[0].replace("Usuário: ", "");
+                    String senhaArquivo = partes[1];
+                    if (usuario.equals(usuarioArquivo) && senha.equals(senhaArquivo)) {
+                        return true;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Erro ao ler o arquivo de usuários.");
+            e.printStackTrace();
+        }
+        return false;
     }
 
     public static void salvarArquivo(String senha, String usuario) {
@@ -70,6 +86,7 @@ public class validacaoDeSenha{
 
     public static void main(String[] args) throws Exception {
         Scanner teclado = new Scanner(System.in);
+
         String senha;
         String usuario;
 
@@ -85,8 +102,11 @@ public class validacaoDeSenha{
             case 1:
                 usuario = verificarUsuario(teclado);
                 senha = autenticarSenha(teclado);
-                verificarArquivo(usuario, senha);
-                System.out.printf("Usuário %s logado com sucesso!%n", usuario);
+                if (verificarArquivo(usuario, senha)) {
+                    System.out.printf("Usuário %s logado com sucesso!%n", usuario);
+                } else {
+                    System.out.println("Usuário ou senha incorretos.");
+                }
                 break;
             default:
                 System.out.println("Opção inválida. Por favor, tente novamente.");
